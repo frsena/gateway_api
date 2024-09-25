@@ -1,0 +1,9 @@
+Flask
+Flask-Cors
+flask-openapi3
+requests
+nose2
+pydantic
+typing_extensions
+geographiclib 
+geopy
