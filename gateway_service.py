@@ -7,10 +7,10 @@ import requests
 from app import app
 from schemas import *
 
-#url_remedio = "http://remedioapi:5000"
-#url_medicacao = "http://medicamentoapi:5001"
-url_medicacao = "http://localhost:5001"
-url_remedio = "http://localhost:5000"
+url_remedio = "http://remedioapi:5000"
+url_medicacao = "http://medicamentoapi:5001"
+#url_medicacao = "http://localhost:5001"
+#url_remedio = "http://localhost:5000"
 
 
 Remedio_tag = Tag(name="Remedio", description="Cadastrar Remedios")
