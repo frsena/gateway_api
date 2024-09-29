@@ -7,10 +7,10 @@ import requests
 from app import app
 from schemas import *
 
-url_remedio = "http://remedioapi:5000"
-url_medicacao = "http://medicamentoapi:5001"
-#url_medicacao = "http://localhost:5001"
-#url_remedio = "http://localhost:5000"
+#url_remedio = "http://remedioapi:5000"
+#url_medicacao = "http://medicamentoapi:5001"
+url_medicacao = "http://localhost:5001"
+url_remedio = "http://localhost:5000"
 
 
 Remedio_tag = Tag(name="Remedio", description="Cadastrar Remedios")
@@ -57,13 +57,14 @@ def pesquisar_remedios(query: PesquisaRemedio):
         pesquisa o medicamento pelo codigo e pela descrição, caso não passe nenhum parametro retorna a lista toda
     """
     try:
-  
         response = requests.get(f"{url_remedio}/pesquisa",params=query)
     except requests.exceptions.ConnectionError:
         return "Service unavailable", 404
     data = response.json()
-
-    return data
+    if(response.status_code == 200):
+        return data, 200
+    else:
+        return data, 404
 
 @app.post('/incluirRemedio', tags=[Remedio_tag],
          responses={"200": RemedioSchema, "400": ErrorSchema})
@@ -94,6 +95,7 @@ def atualizar_remedios(form: RemedioSchema):
     """
     try:
         rem = remedio_view(form)
+        print(rem)
         response = requests.put(f"{url_remedio}/atualizar",rem)
     except requests.exceptions.ConnectionError:
         return "Service unavailable", 404
@@ -101,7 +103,7 @@ def atualizar_remedios(form: RemedioSchema):
     if(response.status_code == 200):
         return data, 200
     else:
-        return data, 400
+        return data, 404
 
 
 @app.delete('/deletarRemedio', tags=[Remedio_tag],
@@ -164,8 +166,8 @@ def pesquisar_medicamentos(query: PesquisaMedicamento):
     dados = response.json()
 
     
-    if(response.status_code == 400):
-       return dados, 400
+    if(response.status_code == 404):
+       return dados, 404
     
     """ 
         Buscar a descrciao do remedio na api de remedio
@@ -205,7 +207,7 @@ def incluir_medicamento(form: MedicamentoIncluirSchema):
 
         return medicamento, 200
     else:
-        return medicamento, 400
+        return medicamento, 404
 
 
 @app.put('/atualizarMedicamento', tags=[Medicacao_tag],
@@ -219,11 +221,16 @@ def atualizar_medicamento(form: MedicamentoSchema):
         response = requests.put(f"{url_medicacao}/atualizar",rem)
     except requests.exceptions.ConnectionError:
         return "Service unavailable", 404
-    data = response.json()
+    
+    dados = response.json()
+
     if(response.status_code == 200):
-        return data, 200
+        remedio = busca_remedio_id(dados['remedio_id'])
+        medicamento = medicamento_completo_view(dados,remedio)
+
+        return medicamento, 200
     else:
-        return data, 400
+        return medicamento, 404
 
 
 @app.delete('/deletarMedicamento', tags=[Medicacao_tag],
@@ -241,7 +248,7 @@ def deletar_medicamento(query: PesquisaMedicamentoId):
     
 
 
-# Chamar a api do google para encontrar farmacia perto
+# Chamar a api do google para encontrar farmacias perto atravez de um cep
 
 
 def obter_geometria(cep):
